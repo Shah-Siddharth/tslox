@@ -1,9 +1,21 @@
+function executeCode(code: string) {
+    //to do - where code gets executed
+}
+
 function runFile(filePath: string): void {
-    console.log("Running file", filePath);
+    const code = Deno.readTextFileSync(filePath);
+    executeCode(code);
 }
 
 function runPrompt(): void {
-    console.log("Running prompt");
+    while (true) {
+        const line = prompt(">");
+        if (line == null) {
+            break;
+        }
+
+        executeCode(line);
+    }
 }
 
 function main(args: string[]) {
