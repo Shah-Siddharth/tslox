@@ -10,6 +10,10 @@ export default class Lox {
     private static runFile(filePath: string): void {
         const code = Deno.readTextFileSync(filePath);
         Lox.executeCode(code);
+
+        if (Lox.hadError) {
+            Deno.exit(65);
+        }
     }
 
     private static runPrompt(): void {
@@ -20,6 +24,8 @@ export default class Lox {
             }
 
             Lox.executeCode(line);
+
+            Lox.hadError = false;
         }
     }
 
