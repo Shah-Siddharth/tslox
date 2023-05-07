@@ -1,5 +1,6 @@
-import Token from './Token.ts'
+import Token from './Token.ts';
 import TokenType from './TokenType.ts';
+import Lox from './Lox.ts';
 
 export default class Scanner {
     private source: string;
@@ -30,6 +31,7 @@ export default class Scanner {
     private scanToken(): void {
         const c = this.advance();
         switch(c) {
+            //single character lexemes
             case '(':
                 this.addToken(TokenType.LEFT_PAREN);
                 break;
@@ -60,6 +62,32 @@ export default class Scanner {
             case '*':
                 this.addToken(TokenType.STAR);
                 break;
+            
+            //double character lexemes
+            case '!':
+                this.addToken(this.match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
+                break;
+            case '=':
+                this.addToken(this.match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
+                break;
+            case '<':
+                this.addToken(this.match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
+                break;
+            case '>':
+                this.addToken(this.match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+                break;
+
+            // '/' character - can represent start of comments as well
+            case '/':
+                if(this.match('/')) {
+                    while (this.peek() != '\n' && !this.isAtEnd()) this.advance();
+                } else {
+                    this.addToken(TokenType.SLASH);
+                }
+                break;
+            
+            default:
+                Lox.reportError(this.line, "", "Unexpected character");
         }
     }
 
@@ -67,8 +95,21 @@ export default class Scanner {
         return this.source[this.current++];
     }
 
+    private peek(): string {
+        if (this.isAtEnd()) return '\0';
+        return this.source[this.current];
+    }
+
     private addToken(type: TokenType, literal: (string|number|null) = null): void {
         const text = this.source.substring(this.start, this.current);
         this.tokens.push(new Token(type, text, literal, this.line));
+    }
+
+    private match(expected: string): boolean {
+        if (this.isAtEnd()) return false;
+        if (this.source[this.current] != expected) return false;
+
+        this.current++;
+        return true;
     }
 }
