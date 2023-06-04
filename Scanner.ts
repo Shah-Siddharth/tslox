@@ -86,6 +86,20 @@ export default class Scanner {
                 }
                 break;
             
+            //whitespace, newlines, etc.
+            case ' ':
+            case '\r':
+            case '\t':
+                break;
+            
+            case '\n':
+                this.line++;
+                break;
+            
+            case '"':
+                this.scanString();
+                break;
+            
             default:
                 Lox.reportError(this.line, "", "Unexpected character");
         }
@@ -112,4 +126,22 @@ export default class Scanner {
         this.current++;
         return true;
     }
+
+    private scanString(): void {
+        while (this.peek() !== '"' && !this.isAtEnd()) {
+            if (this.peek() === '\n') this.line++;
+            this.advance();
+        }
+
+        if (this.isAtEnd()) {
+            Lox.reportError(this.line, "", "Unterminated string.");
+            return;
+        }
+
+        this.advance();     //consume the closing "
+
+        const value: string = this.source.substring(this.start+1, this.current-1);
+        this.addToken(TokenType.STRING, value);
+    }
+
 }
