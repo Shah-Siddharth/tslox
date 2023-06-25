@@ -8,6 +8,26 @@ export default class Scanner {
     private start = 0;
     private current = 0;
     private line = 1;
+    private static keywords: Map<string, TokenType>;
+
+    static {
+        this.keywords = new Map();
+        this.keywords.set("and", TokenType.AND);
+        this.keywords.set("or", TokenType.OR);
+        this.keywords.set("if", TokenType.IF);
+        this.keywords.set("else", TokenType.ELSE);
+        this.keywords.set("true", TokenType.TRUE);
+        this.keywords.set("false", TokenType.FALSE);
+        this.keywords.set("nil", TokenType.NIL);
+        this.keywords.set("fun", TokenType.FUN);
+        this.keywords.set("class", TokenType.CLASS);
+        this.keywords.set("return", TokenType.RETURN);
+        this.keywords.set("for", TokenType.FOR);
+        this.keywords.set("while", TokenType.WHILE);
+        this.keywords.set("var", TokenType.VAR);
+        this.keywords.set("print", TokenType.PRINT);
+        this.keywords.set("super", TokenType.SUPER);
+    }
 
     constructor(source: string) {
         this.source = source;
@@ -103,6 +123,8 @@ export default class Scanner {
             default:
                 if (this.isDigit(c)) {
                     this.scanNumber();
+                } else if (this.isAlpha(c)) {
+                    this.scanIdentifier();
                 }
                 Lox.reportError(this.line, "", "Unexpected character.");
         }
@@ -156,6 +178,14 @@ export default class Scanner {
         return c >= '0' && c <= '9';
     }
 
+    private isAlpha(c: string): boolean {
+        return (c >= 'A' && c <= 'z') || (c == '_');
+    }
+
+    private isAlphaNumeric(c: string) {
+        return this.isAlpha(c) || this.isDigit(c);
+    }
+
     private scanNumber(): void {
         while (this.isDigit(this.peek())) this.advance();
 
@@ -166,6 +196,17 @@ export default class Scanner {
 
         const value = parseFloat(this.source.substring(this.start, this.current));
         this.addToken(TokenType.NUMBER, value)
+    }
+
+    private scanIdentifier(): void {
+        while (this.isAlphaNumeric(this.peek())) this.advance();
+
+        const text = this.source.substring(this.start, this.current);
+        let type = Scanner.keywords.get(text);
+        if (type == undefined) {
+            type = TokenType.IDENTIFIER;
+        }
+        this.addToken(type);
     }
 
 }
