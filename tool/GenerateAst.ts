@@ -8,9 +8,12 @@ class GenerateAst {
     const outputDir = args[0];
     this.defineAst(outputDir, "Expr", [
       "Binary = left: Expr, operator: Token, right: Expr",
-      // To add
+      "Grouping = expression: Expr",
+      "Literal = value: any",
+      "Unary = operator: Token, right: Expr"
     ]);
   }
+
 
   private static defineAst(
     outputDir: string,
@@ -22,8 +25,14 @@ class GenerateAst {
 
     let content = `import Token from "./Token.ts";`;
     content += `export abstract class ${baseName} {`;
+
+    //the base accept() method
+    content += `abstract accept<R>(visitor: Visitor<R>): R;`;
     content += `}`;
 
+    content += this.defineVisitor(baseName, types);
+
+    //the AST classes for each type
     for (const type of types) {
       const className = type.split("=")[0].trim();
       const fields = type.split("=")[1].trim();
@@ -32,6 +41,7 @@ class GenerateAst {
 
     Deno.writeFile(path, encoder.encode(content));
   }
+
 
   private static defineType(
     baseName: string,
@@ -53,9 +63,32 @@ class GenerateAst {
       content += `this.${name} = ${name};`;
     }
 
-    content += `}`;
-    content += "}";
+    content += '}';
 
+    content += `accept<R>(visitor: Visitor<R>) {
+      return visitor.visit${className + baseName}(this);
+    }`;
+
+    content += '}';
+
+    return content;
+  }
+
+  
+  private static defineVisitor(
+    baseName: string,
+    types: string[]
+  ) {
+    let content = "";
+    content += `export interface Visitor<R> {`;
+
+    for (const type of types) {
+      const typeName = type.split('=')[0].trim();
+      content += `visit${typeName}${baseName}(`;
+      content += `${baseName.toLowerCase()}: ${typeName}): R;`;
+    }
+
+    content += '}';
     return content;
   }
 }
