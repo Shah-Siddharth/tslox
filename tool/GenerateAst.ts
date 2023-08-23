@@ -10,10 +10,9 @@ class GenerateAst {
       "Binary = left: Expr, operator: Token, right: Expr",
       "Grouping = expression: Expr",
       "Literal = value: any",
-      "Unary = operator: Token, right: Expr"
+      "Unary = operator: Token, right: Expr",
     ]);
   }
-
 
   private static defineAst(
     outputDir: string,
@@ -42,7 +41,6 @@ class GenerateAst {
     Deno.writeFile(path, encoder.encode(content));
   }
 
-
   private static defineType(
     baseName: string,
     className: string,
@@ -63,32 +61,31 @@ class GenerateAst {
       content += `this.${name} = ${name};`;
     }
 
-    content += '}';
+    content += "}";
 
     content += `accept<R>(visitor: Visitor<R>) {
       return visitor.visit${className + baseName}(this);
     }`;
 
-    content += '}';
+    content += "}";
 
     return content;
   }
 
-  
   private static defineVisitor(
     baseName: string,
-    types: string[]
+    types: string[],
   ) {
     let content = "";
     content += `export interface Visitor<R> {`;
 
     for (const type of types) {
-      const typeName = type.split('=')[0].trim();
+      const typeName = type.split("=")[0].trim();
       content += `visit${typeName}${baseName}(`;
       content += `${baseName.toLowerCase()}: ${typeName}): R;`;
     }
 
-    content += '}';
+    content += "}";
     return content;
   }
 }
