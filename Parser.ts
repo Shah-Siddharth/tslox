@@ -1,4 +1,4 @@
-import { Binary, Expr } from "./Expr.ts";
+import { Binary, Expr, Grouping, Literal, Unary } from "./Expr.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
@@ -67,6 +67,40 @@ export default class Parser {
     }
 
     return expr;
+  }
+
+  private unary(): Expr {
+    if (this.match(TokenType.BANG, TokenType.MINUS)) {
+      const operator: Token = this.previous();
+      const right: Expr = this.unary();
+      return new Unary(operator, right);
+    }
+
+    return this.primary();
+  }
+
+  private primary(): Expr {
+    if (this.match(TokenType.FALSE)) return new Literal(false);
+    if (this.match(TokenType.TRUE)) return new Literal(true);
+    if (this.match(TokenType.NIL)) return new Literal(null);
+
+    if (this.match(TokenType.NUMBER, TokenType.STRING)) {
+      return new Literal(this.previous().literal);
+    }
+
+    if (this.match(TokenType.LEFT_PAREN)) {
+      const expr: Expr = this.expression();
+      this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression");
+      return new Grouping(expr);
+    }
+
+    //TODO: Work on this. what if no expression found
+    return new Literal(undefined);
+  }
+
+  //TODO: Update this function
+  private consume(type: TokenType, message: string): Token {
+    return this.advance();
   }
 
   private match(...types: TokenType[]) {
