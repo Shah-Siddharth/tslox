@@ -1,3 +1,6 @@
+import Token from "./Token.ts";
+import TokenType from "./TokenType.ts";
+
 export default class Lox {
   static hadError = false;
 
@@ -38,8 +41,16 @@ export default class Lox {
     }
   }
 
-  static reportError(line: number, where: string, message: string): void {
+  static report(line: number, where: string, message: string): void {
     console.log(`[line ${line}] Error ${where}: ${message}`);
     Lox.hadError = true;
+  }
+
+  static error(token: Token, message: string): void {
+    if (token.type === TokenType.EOF) {
+      Lox.report(token.line, "at end", message);
+    } else {
+      Lox.report(token.line, `at '${token.lexeme}'`, message);
+    }
   }
 }

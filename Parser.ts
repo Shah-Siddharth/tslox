@@ -1,4 +1,5 @@
 import { Binary, Expr, Grouping, Literal, Unary } from "./Expr.ts";
+import Lox from "./Lox.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
@@ -98,10 +99,17 @@ export default class Parser {
     return new Literal(undefined);
   }
 
-  //TODO: Update this function
   private consume(type: TokenType, message: string): Token {
-    return this.advance();
+    if (this.check(type)) return this.advance();
+    
+    throw this.error(this.peek(), message);
   }
+
+  private error(token: Token, message: string): ParseError {
+    Lox.error(token, message);
+    return new ParseError();
+  }
+  
 
   private match(...types: TokenType[]) {
     for (const type of types) {
@@ -136,3 +144,6 @@ export default class Parser {
     return this.tokens[this.current - 1];
   }
 }
+
+
+class ParseError extends Error {}
