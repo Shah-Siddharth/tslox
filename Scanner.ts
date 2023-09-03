@@ -129,8 +129,9 @@ export default class Scanner {
           this.scanNumber();
         } else if (this.isAlpha(c)) {
           this.scanIdentifier();
+        } else {
+          Lox.reportError(this.line, "", "Unexpected character.");
         }
-        Lox.reportError(this.line, "", "Unexpected character.");
     }
   }
 
