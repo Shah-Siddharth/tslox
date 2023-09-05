@@ -11,6 +11,15 @@ export default class Parser {
     this.tokens = tokens;
   }
 
+  parse(): Expr {
+    try {
+      return this.expression();
+    } catch (error: unknown) {
+      // @ts-expect-error   //Needs to be worked upon
+      return null;
+    }
+  }
+
   private expression(): Expr {
     return this.equality();
   }
@@ -95,8 +104,7 @@ export default class Parser {
       return new Grouping(expr);
     }
 
-    //TODO: Work on this. what if no expression found
-    return new Literal(undefined);
+    throw this.error(this.peek(), "Expect expression.");
   }
 
   private synchronize(): void {
@@ -105,7 +113,7 @@ export default class Parser {
     while (!this.isAtEnd()) {
       if (this.previous().type == TokenType.SEMICOLON) return;
 
-      switch(this.peek().type) {
+      switch (this.peek().type) {
         case TokenType.CLASS:
         case TokenType.FUN:
         case TokenType.VAR:
@@ -123,7 +131,7 @@ export default class Parser {
 
   private consume(type: TokenType, message: string): Token {
     if (this.check(type)) return this.advance();
-    
+
     throw this.error(this.peek(), message);
   }
 
@@ -131,7 +139,6 @@ export default class Parser {
     Lox.error(token, message);
     return new ParseError();
   }
-  
 
   private match(...types: TokenType[]) {
     for (const type of types) {
@@ -166,6 +173,5 @@ export default class Parser {
     return this.tokens[this.current - 1];
   }
 }
-
 
 class ParseError extends Error {}

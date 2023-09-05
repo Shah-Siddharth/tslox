@@ -1,3 +1,6 @@
+import AstPrinter from "./AstPrinter.ts";
+import Parser from "./Parser.ts";
+import Scanner from "./Scanner.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
@@ -5,8 +8,14 @@ export default class Lox {
   static hadError = false;
 
   private static executeCode(code: string) {
-    //to do - where code gets executed
-    console.log(code);
+    const scanner = new Scanner(code);
+    const tokens = scanner.generateTokens();
+
+    const parser = new Parser(tokens);
+    const expression = parser.parse();
+
+    if (Lox.hadError) return;
+    console.log(new AstPrinter().print(expression));
   }
 
   private static runFile(filePath: string): void {
@@ -41,16 +50,16 @@ export default class Lox {
     }
   }
 
-  static report(line: number, where: string, message: string): void {
+  static reportError(line: number, where: string, message: string): void {
     console.log(`[line ${line}] Error ${where}: ${message}`);
     Lox.hadError = true;
   }
 
   static error(token: Token, message: string): void {
     if (token.type === TokenType.EOF) {
-      Lox.report(token.line, "at end", message);
+      Lox.reportError(token.line, "at end", message);
     } else {
-      Lox.report(token.line, `at '${token.lexeme}'`, message);
+      Lox.reportError(token.line, `at '${token.lexeme}'`, message);
     }
   }
 }
