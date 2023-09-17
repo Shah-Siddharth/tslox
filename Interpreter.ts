@@ -1,4 +1,6 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor } from "./Expr.ts";
+import RuntimeError from "./RuntimeError.ts";
+import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
 type LoxObject = number | string | boolean | null;
@@ -18,6 +20,7 @@ export class Interpreter implements Visitor<LoxObject> {
       case TokenType.BANG:
         return !this.isTruthy(right);
       case TokenType.MINUS:
+        this.checkNumberOperand(expr.operator, right);
         return -(right as number);
     }
 
@@ -31,22 +34,29 @@ export class Interpreter implements Visitor<LoxObject> {
 
     switch (expr.operator.type) {
       case TokenType.GREATER:
+        this.checkNumberOperands(expr.operator, left, right);
         return (left as number) > (right as number);
       case TokenType.GREATER_EQUAL:
+        this.checkNumberOperands(expr.operator, left, right);
         return (left as number) >= (right as number);
       case TokenType.LESS:
+        this.checkNumberOperands(expr.operator, left, right);
         return (left as number) < (right as number);
       case TokenType.LESS_EQUAL:
+        this.checkNumberOperands(expr.operator, left, right);
         return (left as number) <= (right as number);
       case TokenType.EQUAL_EQUAL:
         return this.isEqual(left, right);
       case TokenType.BANG_EQUAL:
         return !this.isEqual(left, right);
       case TokenType.MINUS:
+        this.checkNumberOperands(expr.operator, left, right);
         return (left as number) - (right as number);
       case TokenType.SLASH:
+        this.checkNumberOperands(expr.operator, left, right);
         return (left as number) / (right as number);
       case TokenType.STAR:
+        this.checkNumberOperands(expr.operator, left, right);
         return (left as number) * (right as number);
       case TokenType.PLUS:
         if (typeof left === "number" && typeof right === "number") {
@@ -76,5 +86,19 @@ export class Interpreter implements Visitor<LoxObject> {
     if (a === null) return false;
 
     return a === b;
+  }
+
+  private checkNumberOperand(operator: Token, operand: LoxObject): void {
+    if (typeof operand === "number") return;
+    throw new RuntimeError(operator, "Operand must be a number");
+  }
+
+  private checkNumberOperands(
+    operator: Token,
+    left: LoxObject,
+    right: LoxObject,
+  ): void {
+    if (typeof left === "number" && typeof right === "number") return;
+    throw new RuntimeError(operator, "Operands must be numbers");
   }
 }
