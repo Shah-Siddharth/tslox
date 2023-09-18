@@ -1,4 +1,4 @@
-import AstPrinter from "./AstPrinter.ts";
+import { Interpreter } from "./Interpreter.ts";
 import Parser from "./Parser.ts";
 import RuntimeError from "./RuntimeError.ts";
 import Scanner from "./Scanner.ts";
@@ -6,6 +6,7 @@ import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
 export default class Lox {
+  private static readonly interpreter = new Interpreter();
   static hadError = false;
   static hadRuntimeError = false;
 
@@ -17,7 +18,8 @@ export default class Lox {
     const expression = parser.parse();
 
     if (Lox.hadError) return;
-    console.log(new AstPrinter().print(expression));
+
+    Lox.interpreter.interpret(expression);
   }
 
   private static runFile(filePath: string): void {
@@ -67,7 +69,7 @@ export default class Lox {
   static runtimeError(error: RuntimeError): void {
     console.error(`${error.message}
                   [line ${error.token.line}]`);
-    
+
     Lox.hadRuntimeError = true;
   }
 }

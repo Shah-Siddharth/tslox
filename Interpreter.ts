@@ -7,7 +7,6 @@ import TokenType from "./TokenType.ts";
 type LoxObject = number | string | boolean | null;
 
 export class Interpreter implements Visitor<LoxObject> {
-
   interpret(expression: Expr): void {
     try {
       const value = this.evaluate(expression);
@@ -88,7 +87,10 @@ export class Interpreter implements Visitor<LoxObject> {
         if (typeof left === "string" && typeof right === "string") {
           return left + right;
         }
-        throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings");
+        throw new RuntimeError(
+          expr.operator,
+          "Operands must be two numbers or two strings",
+        );
     }
 
     //unreachable
