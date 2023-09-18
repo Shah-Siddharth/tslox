@@ -1,11 +1,13 @@
 import AstPrinter from "./AstPrinter.ts";
 import Parser from "./Parser.ts";
+import RuntimeError from "./RuntimeError.ts";
 import Scanner from "./Scanner.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
 export default class Lox {
   static hadError = false;
+  static hadRuntimeError = false;
 
   private static executeCode(code: string) {
     const scanner = new Scanner(code);
@@ -22,9 +24,8 @@ export default class Lox {
     const code = Deno.readTextFileSync(filePath);
     Lox.executeCode(code);
 
-    if (Lox.hadError) {
-      Deno.exit(65);
-    }
+    if (Lox.hadError) Deno.exit(65);
+    if (Lox.hadRuntimeError) Deno.exit(70);
   }
 
   private static runPrompt(): void {
@@ -61,5 +62,12 @@ export default class Lox {
     } else {
       Lox.reportError(token.line, `at '${token.lexeme}'`, message);
     }
+  }
+
+  static runtimeError(error: RuntimeError): void {
+    console.error(`${error.message}
+                  [line ${error.token.line}]`);
+    
+    Lox.hadRuntimeError = true;
   }
 }

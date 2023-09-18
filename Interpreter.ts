@@ -1,4 +1,5 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor } from "./Expr.ts";
+import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
@@ -6,6 +7,28 @@ import TokenType from "./TokenType.ts";
 type LoxObject = number | string | boolean | null;
 
 export class Interpreter implements Visitor<LoxObject> {
+
+  interpret(expression: Expr): void {
+    try {
+      const value = this.evaluate(expression);
+      console.log(value);
+    } catch (error) {
+      Lox.runtimeError(error);
+    }
+  }
+
+  private stringify(object: LoxObject): string {
+    if (object === null) return "nil";
+
+    if (typeof object === "number") {
+      let text = object.toString();
+      if (text.endsWith(".0")) text = text.substring(0, text.length - 2);
+      return text;
+    }
+
+    return object.toString();
+  }
+
   visitLiteralExpr(expr: Literal): LoxObject {
     return expr.value;
   }
@@ -65,6 +88,7 @@ export class Interpreter implements Visitor<LoxObject> {
         if (typeof left === "string" && typeof right === "string") {
           return left + right;
         }
+        throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings");
     }
 
     //unreachable
