@@ -12,6 +12,11 @@ class GenerateAst {
       "Literal = value: any",
       "Unary = operator: Token, right: Expr",
     ]);
+
+    this.defineAst(outputDir, "Stmt", [
+      "Expression = expression: Expr",
+      "Print = expression: Expr",
+    ]);
   }
 
   private static defineAst(
