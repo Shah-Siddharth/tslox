@@ -15,11 +15,11 @@ export default class Lox {
     const tokens = scanner.generateTokens();
 
     const parser = new Parser(tokens);
-    const expression = parser.parse();
+    const statements = parser.parse();
 
     if (Lox.hadError) return;
 
-    Lox.interpreter.interpret(expression);
+    Lox.interpreter.interpret(statements);
   }
 
   private static runFile(filePath: string): void {

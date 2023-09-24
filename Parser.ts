@@ -15,7 +15,7 @@ export default class Parser {
   parse(): Stmt[] {
     try {
       const statements: Stmt[] = [];
-      while (this.isAtEnd()) {
+      while (!this.isAtEnd()) {
         statements.push(this.statement());
       }
 
