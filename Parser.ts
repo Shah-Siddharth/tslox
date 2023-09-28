@@ -1,6 +1,6 @@
-import { Binary, Expr, Grouping, Literal, Unary } from "./Expr.ts";
+import { Binary, Expr, Grouping, Literal, Unary, Variable } from "./Expr.ts";
 import Lox from "./Lox.ts";
-import { Expression, Print, Stmt } from "./Stmt.ts";
+import { Expression, Print, Stmt, Var } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
@@ -16,7 +16,7 @@ export default class Parser {
     try {
       const statements: Stmt[] = [];
       while (!this.isAtEnd()) {
-        statements.push(this.statement());
+        statements.push(this.declaration());
       }
 
       return statements;
@@ -24,6 +24,25 @@ export default class Parser {
       // @ts-expect-error   //Needs to be worked upon
       return null;
     }
+  }
+
+  private declaration(): Stmt {
+    if (this.match(TokenType.VAR)) return this.varDeclaration();
+
+    return this.statement();
+  }
+
+  private varDeclaration(): Stmt {
+    const name: Token = this.consume(
+      TokenType.IDENTIFIER,
+      "Expect variable name.",
+    );
+
+    let initializer: Expr | null = null;
+    if (this.match(TokenType.EQUAL)) initializer = this.expression();
+
+    this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+    return new Var(name, initializer);
   }
 
   private statement(): Stmt {
@@ -119,6 +138,10 @@ export default class Parser {
 
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
+    }
+
+    if (this.match(TokenType.IDENTIFIER)) {
+      return new Variable(this.previous());
     }
 
     if (this.match(TokenType.LEFT_PAREN)) {
