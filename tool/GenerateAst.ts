@@ -11,11 +11,13 @@ class GenerateAst {
       "Grouping = expression: Expr",
       "Literal = value: any",
       "Unary = operator: Token, right: Expr",
+      "Variable = name: Token",
     ]);
 
     this.defineAst(outputDir, "Stmt", [
       "Expression = expression: Expr",
       "Print = expression: Expr",
+      "Var = name: Token, initializer: Expr",
     ]);
   }
 
