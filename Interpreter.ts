@@ -1,13 +1,24 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor } from "./Expr.ts";
+import { Environment } from "./Environment.ts";
+import {
+  Binary,
+  Expr,
+  Grouping,
+  Literal,
+  Unary,
+  Visitor as ExprVisitor,
+  Variable,
+} from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
-import { Expression, Print, Stmt, Visitor as StmtVisitor } from "./Stmt.ts";
+import { Expression, Print, Stmt, Visitor as StmtVisitor, Var } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
-type LoxObject = number | string | boolean | null;
+export type LoxObject = number | string | boolean | null;
 
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
+  private environment = new Environment();
+
   interpret(statements: Stmt[]): void {
     try {
       for (const statement of statements) {
@@ -43,6 +54,15 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     console.log(this.stringify(value));
   }
 
+  visitVarStmt(stmt: Var): void {
+    let value: LoxObject = null;
+    if (stmt.initializer !== null) {
+      value = this.evaluate(stmt.initializer);
+    }
+
+    this.environment.define(stmt.name.lexeme, value);
+  }
+
   visitLiteralExpr(expr: Literal): LoxObject {
     return expr.value;
   }
@@ -63,6 +83,10 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
     //unreachable
     return null;
+  }
+
+  visitVariableExpr(expr: Variable): LoxObject {
+    return this.environment.get(expr.name);
   }
 
   visitBinaryExpr(expr: Binary): LoxObject {
