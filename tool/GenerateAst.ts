@@ -7,6 +7,7 @@ class GenerateAst {
 
     const outputDir = args[0];
     this.defineAst(outputDir, "Expr", [
+      "Assign = name: Token, value: Expr",
       "Binary = left: Expr, operator: Token, right: Expr",
       "Grouping = expression: Expr",
       "Literal = value: any",
@@ -17,7 +18,7 @@ class GenerateAst {
     this.defineAst(outputDir, "Stmt", [
       "Expression = expression: Expr",
       "Print = expression: Expr",
-      "Var = name: Token, initializer: Expr",
+      "Var = name: Token, initializer: Expr | null",
     ]);
   }
 

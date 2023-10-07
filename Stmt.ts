@@ -36,7 +36,7 @@ export class Print extends Stmt {
 export class Var extends Stmt {
   name: Token;
   initializer: Expr | null;
-  constructor(name: Token, initializer: Expr | null) {
+  constructor(name: Token, initializer: Expr) {
     super();
     this.name = name;
     this.initializer = initializer;
