@@ -1,16 +1,23 @@
 import { Environment } from "./Environment.ts";
 import {
+  Assign,
   Binary,
   Expr,
   Grouping,
   Literal,
   Unary,
-  Visitor as ExprVisitor,
   Variable,
+  Visitor as ExprVisitor,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
-import { Expression, Print, Stmt, Visitor as StmtVisitor, Var } from "./Stmt.ts";
+import {
+  Expression,
+  Print,
+  Stmt,
+  Var,
+  Visitor as StmtVisitor,
+} from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
@@ -61,6 +68,12 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
 
     this.environment.define(stmt.name.lexeme, value);
+  }
+
+  visitAssignExpr(expr: Assign): LoxObject {
+    const value: LoxObject = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
   }
 
   visitLiteralExpr(expr: Literal): LoxObject {

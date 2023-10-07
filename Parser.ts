@@ -1,4 +1,12 @@
-import { Binary, Expr, Grouping, Literal, Unary, Variable } from "./Expr.ts";
+import {
+  Assign,
+  Binary,
+  Expr,
+  Grouping,
+  Literal,
+  Unary,
+  Variable,
+} from "./Expr.ts";
 import Lox from "./Lox.ts";
 import { Expression, Print, Stmt, Var } from "./Stmt.ts";
 import Token from "./Token.ts";
@@ -63,7 +71,25 @@ export default class Parser {
   }
 
   private expression(): Expr {
-    return this.equality();
+    return this.assignment();
+  }
+
+  private assignment(): Expr {
+    const expr: Expr = this.equality();
+
+    if (this.match(TokenType.EQUAL)) {
+      const equals: Token = this.previous();
+      const value: Expr = this.assignment();
+
+      if (expr instanceof Variable) {
+        const name: Token = expr.name;
+        return new Assign(name, value);
+      }
+
+      this.error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
   }
 
   private equality(): Expr {
@@ -153,6 +179,7 @@ export default class Parser {
     throw this.error(this.peek(), "Expect expression.");
   }
 
+  //todo: make use of this
   private synchronize(): void {
     this.advance();
 
