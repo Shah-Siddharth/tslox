@@ -12,6 +12,7 @@ import {
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
 import {
+  Block,
   Expression,
   Print,
   Stmt,
@@ -50,6 +51,23 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   private execute(stmt: Stmt): void {
     stmt.accept(this);
+  }
+
+  executeBlock(statements: Stmt[], environment: Environment): void {
+    const previousEnv = this.environment;
+    try {
+      this.environment = environment;
+
+      for (const statement of statements) {
+        this.execute(statement);
+      }
+    } finally {
+      this.environment = previousEnv;
+    }
+  }
+
+  visitBlockStmt(stmt: Block): void {
+    this.executeBlock(stmt.statements, new Environment(this.environment));
   }
 
   visitExpressionStmt(stmt: Expression): void {
