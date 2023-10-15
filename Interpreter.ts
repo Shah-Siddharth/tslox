@@ -18,6 +18,7 @@ import {
   Stmt,
   Var,
   Visitor as StmtVisitor,
+  If,
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
@@ -72,6 +73,14 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   visitExpressionStmt(stmt: Expression): void {
     this.evaluate(stmt.expression);
+  }
+
+  visitIfStmt(stmt: If): void {
+    if (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch !== null) {
+      this.execute(stmt.elseBranch);
+    }
   }
 
   visitPrintStmt(stmt: Print): void {

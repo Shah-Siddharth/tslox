@@ -38,7 +38,7 @@ export class Expression extends Stmt {
 export class If extends Stmt {
   condition: Expr;
   thenBranch: Stmt;
-  elseBranch: Stmt;
+  elseBranch: Stmt | null;
   constructor(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) {
     super();
     this.condition = condition;
