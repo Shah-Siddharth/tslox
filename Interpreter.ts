@@ -8,17 +8,18 @@ import {
   Unary,
   Variable,
   Visitor as ExprVisitor,
+  Logical,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
 import {
   Block,
   Expression,
+  If,
   Print,
   Stmt,
   Var,
   Visitor as StmtVisitor,
-  If,
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
@@ -105,6 +106,18 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   visitLiteralExpr(expr: Literal): LoxObject {
     return expr.value;
+  }
+
+  visitLogicalExpr(expr: Logical): LoxObject {
+    const left: LoxObject = this.evaluate(expr.left);
+
+    if (expr.operator.type === TokenType.OR) {
+      if (this.isTruthy(left)) return left;
+    } else {
+      if (!this.isTruthy(left)) return left;
+    }
+
+    return this.evaluate(expr.right);
   }
 
   visitGroupingExpr(expr: Grouping): LoxObject {
