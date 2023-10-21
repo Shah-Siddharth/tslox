@@ -22,6 +22,7 @@ class GenerateAst {
       "If = condition: Expr, thenBranch: Stmt, elseBranch: Stmt | null",
       "Print = expression: Expr",
       "Var = name: Token, initializer: Expr | null",
+      "While = condition: Expr, body: Stmt",
     ]);
   }
 
@@ -34,19 +35,22 @@ class GenerateAst {
     const encoder = new TextEncoder();
 
     let content = `import Token from "./Token.ts";`;
+    content += "\n\n";
     content += `export abstract class ${baseName} {`;
 
     //the base accept() method
     content += `abstract accept<R>(visitor: Visitor<R>): R;`;
-    content += `}`;
+    content += `}\n\n`;
 
     content += this.defineVisitor(baseName, types);
+    content += `\n\n`;
 
     //the AST classes for each type
     for (const type of types) {
       const className = type.split("=")[0].trim();
       const fields = type.split("=")[1].trim();
       content += this.defineType(baseName, className, fields);
+      content += "\n\n";
     }
 
     Deno.writeFile(path, encoder.encode(content));
