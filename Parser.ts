@@ -9,7 +9,7 @@ import {
   Variable,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
-import { Block, Expression, If, Print, Stmt, Var } from "./Stmt.ts";
+import { Block, Expression, If, Print, Stmt, Var, While } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
@@ -57,6 +57,7 @@ export default class Parser {
   private statement(): Stmt {
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     return this.expressionStatement();
   }
@@ -77,6 +78,15 @@ export default class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
+  }
+
+  private whileStatement() {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+    const condition: Expr = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+    const body: Stmt = this.statement();
+
+    return new While(condition, body);
   }
 
   private expressionStatement(): Stmt {

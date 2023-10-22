@@ -5,10 +5,10 @@ import {
   Expr,
   Grouping,
   Literal,
+  Logical,
   Unary,
   Variable,
   Visitor as ExprVisitor,
-  Logical,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
@@ -20,6 +20,7 @@ import {
   Stmt,
   Var,
   Visitor as StmtVisitor,
+  While,
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
@@ -96,6 +97,12 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
 
     this.environment.define(stmt.name.lexeme, value);
+  }
+
+  visitWhileStmt(stmt: While): void {
+    while (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.body);
+    }
   }
 
   visitAssignExpr(expr: Assign): LoxObject {
