@@ -9,6 +9,7 @@ import {
   Unary,
   Variable,
   Visitor as ExprVisitor,
+  Call,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
@@ -24,8 +25,7 @@ import {
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
-
-export type LoxObject = number | string | boolean | null;
+import { LoxCallable, LoxObject } from "./types.ts";
 
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   private environment = new Environment();
@@ -194,6 +194,21 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
     //unreachable
     return null;
+  }
+
+  visitCallExpr(expr: Call): LoxObject {
+    const callee: any = this.evaluate(expr.callee);    
+    const args: LoxObject[] = expr.args.map((arg) => this.evaluate(arg));
+
+    if (!(callee instanceof LoxCallable)) {
+      throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+    }
+
+    if (args.length !== callee.arity()) {
+      throw new RuntimeError(expr.paren, `Expected ${callee.arity()} arguments but got ${args.length}.`);
+    }
+
+    return callee.call(this, args);
   }
 
   private evaluate(expr: Expr): LoxObject {
