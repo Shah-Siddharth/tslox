@@ -25,10 +25,16 @@ import {
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
-import { LoxCallable, LoxObject } from "./types.ts";
+import { LoxCallable, LoxClockFunction, LoxObject } from "./types.ts";
 
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
-  private environment = new Environment();
+  private readonly globals = new Environment();
+  private environment = this.globals;
+
+  constructor() {
+    // native 'clock' function
+    this.globals.define('clock', new LoxClockFunction());
+  }
 
   interpret(statements: Stmt[]): void {
     try {
