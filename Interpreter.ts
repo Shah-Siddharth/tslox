@@ -2,6 +2,7 @@ import { Environment } from "./Environment.ts";
 import {
   Assign,
   Binary,
+  Call,
   Expr,
   Grouping,
   Literal,
@@ -9,13 +10,13 @@ import {
   Unary,
   Variable,
   Visitor as ExprVisitor,
-  Call,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
 import {
   Block,
   Expression,
+  Function,
   If,
   Print,
   Stmt,
@@ -25,15 +26,20 @@ import {
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
-import { LoxCallable, LoxClockFunction, LoxObject } from "./types.ts";
+import {
+  LoxCallable,
+  LoxClockFunction,
+  LoxFunction,
+  LoxObject,
+} from "./types.ts";
 
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
-  private readonly globals = new Environment();
+  readonly globals = new Environment();
   private environment = this.globals;
 
   constructor() {
     // native 'clock' function
-    this.globals.define('clock', new LoxClockFunction());
+    this.globals.define("clock", new LoxClockFunction());
   }
 
   interpret(statements: Stmt[]): void {
@@ -203,18 +209,29 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   }
 
   visitCallExpr(expr: Call): LoxObject {
-    const callee: any = this.evaluate(expr.callee);    
+    const callee: any = this.evaluate(expr.callee);
     const args: LoxObject[] = expr.args.map((arg) => this.evaluate(arg));
 
     if (!(callee instanceof LoxCallable)) {
-      throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+      throw new RuntimeError(
+        expr.paren,
+        "Can only call functions and classes.",
+      );
     }
 
     if (args.length !== callee.arity()) {
-      throw new RuntimeError(expr.paren, `Expected ${callee.arity()} arguments but got ${args.length}.`);
+      throw new RuntimeError(
+        expr.paren,
+        `Expected ${callee.arity()} arguments but got ${args.length}.`,
+      );
     }
 
     return callee.call(this, args);
+  }
+
+  visitFunctionStmt(stmt: Function): void {
+    const func = new LoxFunction(stmt);
+    this.environment.define(stmt.name.lexeme, func);
   }
 
   private evaluate(expr: Expr): LoxObject {

@@ -10,7 +10,16 @@ import {
   Variable,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
-import { Block, Expression, If, Print, Stmt, Var, While } from "./Stmt.ts";
+import {
+  Block,
+  Expression,
+  Function,
+  If,
+  Print,
+  Stmt,
+  Var,
+  While,
+} from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 
@@ -37,6 +46,7 @@ export default class Parser {
   }
 
   private declaration(): Stmt {
+    if (this.match(TokenType.FUN)) return this.function("function");
     if (this.match(TokenType.VAR)) return this.varDeclaration();
 
     return this.statement();
@@ -136,6 +146,33 @@ export default class Parser {
     const expr: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
     return new Expression(expr);
+  }
+
+  private function(kind: string): Function {
+    const name: Token = this.consume(
+      TokenType.IDENTIFIER,
+      `Expect ${kind} name.`,
+    );
+    this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+    const parameters: Token[] = [];
+
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parameters.length >= 255) {
+          this.error(this.peek(), "Can't have more than 255 parameters");
+        }
+
+        parameters.push(
+          this.consume(TokenType.IDENTIFIER, "Expect parameter name."),
+        );
+      } while (this.match(TokenType.COMMA));
+    }
+
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body`);
+    const body: Stmt[] = this.block();
+    return new Function(name, parameters, body);
   }
 
   private block(): Stmt[] {
