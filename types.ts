@@ -36,8 +36,23 @@ export class LoxFunction extends LoxCallable {
       environment.define(this.declaration.params[i].lexeme, args[i]);
     }
 
-    interpreter.executeBlock(this.declaration.body, environment);
+    try {
+      interpreter.executeBlock(this.declaration.body, environment);
+    } catch (e) {
+      if (e instanceof ReturnException) {
+        return e.value;
+      }
+    }
     return null;
+  }
+}
+
+export class ReturnException extends Error {
+  readonly value: LoxObject;
+
+  constructor(value: LoxObject) {
+    super();
+    this.value = value;
   }
 }
 

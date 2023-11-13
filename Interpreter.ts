@@ -19,6 +19,7 @@ import {
   Function,
   If,
   Print,
+  Return,
   Stmt,
   Var,
   Visitor as StmtVisitor,
@@ -31,6 +32,7 @@ import {
   LoxClockFunction,
   LoxFunction,
   LoxObject,
+  ReturnException,
 } from "./types.ts";
 
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
@@ -100,6 +102,13 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   visitPrintStmt(stmt: Print): void {
     const value: LoxObject = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
+  }
+
+  visitReturnStmt(stmt: Return): void {
+    let value: LoxObject = null;
+    if (stmt.value !== null) value = this.evaluate(stmt.value);
+
+    throw new ReturnException(value);
   }
 
   visitVarStmt(stmt: Var): void {
