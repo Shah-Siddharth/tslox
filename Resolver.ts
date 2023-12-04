@@ -1,7 +1,13 @@
-import { Expr, Variable, Visitor as ExprVisitor } from "./Expr.ts";
+import { Assign, Expr, Variable, Visitor as ExprVisitor } from "./Expr.ts";
 import { Interpreter } from "./Interpreter.ts";
 import Lox from "./Lox.ts";
-import { Block, Stmt, Var, Visitor as StmtVisitor } from "./Stmt.ts";
+import {
+  Block,
+  Function as StmtFunction,
+  Stmt,
+  Var,
+  Visitor as StmtVisitor,
+} from "./Stmt.ts";
 import Token from "./Token.ts";
 
 type SyntaxVisitor<RE, RS> = ExprVisitor<RE> & StmtVisitor<RS>;
@@ -21,6 +27,17 @@ export class Resolver implements SyntaxVisitor<void, void> {
   resolve(target: Stmt[] | Stmt | Expr): void {
     if (target instanceof Array) target.forEach((stmt) => this.resolve(stmt));
     else target.accept(this);
+  }
+
+  private resolveFunction(func: StmtFunction): void {
+    this.beginScope();
+    for (const param of func.params) {
+      this.declare(param);
+      this.define(param);
+    }
+
+    this.resolve(func.body);
+    this.endScope();
   }
 
   beginScope(): void {
@@ -57,6 +74,12 @@ export class Resolver implements SyntaxVisitor<void, void> {
     this.endScope();
   }
 
+  visitFunctionStmt(stmt: StmtFunction): void {
+    this.declare(stmt.name);
+    this.define(stmt.name);
+    this.resolveFunction(stmt);
+  }
+
   visitVarStmt(stmt: Var): void {
     this.declare(stmt.name);
     if (stmt.initializer !== null) {
@@ -64,6 +87,11 @@ export class Resolver implements SyntaxVisitor<void, void> {
     }
 
     this.define(stmt.name);
+  }
+
+  visitAssignExpr(expr: Assign): void {
+    this.resolve(expr.value);
+    this.resolveLocal(expr, expr.name);
   }
 
   visitVariableExpr(expr: Variable): void {
