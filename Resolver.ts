@@ -1,12 +1,28 @@
-import { Assign, Expr, Variable, Visitor as ExprVisitor } from "./Expr.ts";
+import {
+  Assign,
+  Binary,
+  Call,
+  Expr,
+  Grouping,
+  Literal,
+  Logical,
+  Unary,
+  Variable,
+  Visitor as ExprVisitor,
+} from "./Expr.ts";
 import { Interpreter } from "./Interpreter.ts";
 import Lox from "./Lox.ts";
 import {
   Block,
+  Expression,
   Function as StmtFunction,
+  If,
+  Print,
+  Return,
   Stmt,
   Var,
   Visitor as StmtVisitor,
+  While,
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 
@@ -74,10 +90,30 @@ export class Resolver implements SyntaxVisitor<void, void> {
     this.endScope();
   }
 
+  visitExpressionStmt(stmt: Expression): void {
+    this.resolve(stmt.expression);
+  }
+
   visitFunctionStmt(stmt: StmtFunction): void {
     this.declare(stmt.name);
     this.define(stmt.name);
     this.resolveFunction(stmt);
+  }
+
+  visitIfStmt(stmt: If): void {
+    this.resolve(stmt.condition);
+    this.resolve(stmt.thenBranch);
+    if (stmt.elseBranch !== null) this.resolve(stmt.elseBranch);
+  }
+
+  visitPrintStmt(stmt: Print): void {
+    this.resolve(stmt.expression);
+  }
+
+  visitReturnStmt(stmt: Return): void {
+    if (stmt.value !== null) {
+      this.resolve(stmt.value);
+    }
   }
 
   visitVarStmt(stmt: Var): void {
@@ -89,9 +125,43 @@ export class Resolver implements SyntaxVisitor<void, void> {
     this.define(stmt.name);
   }
 
+  visitWhileStmt(stmt: While): void {
+    this.resolve(stmt.condition);
+    this.resolve(stmt.body);
+  }
+
   visitAssignExpr(expr: Assign): void {
     this.resolve(expr.value);
     this.resolveLocal(expr, expr.name);
+  }
+
+  visitBinaryExpr(expr: Binary): void {
+    this.resolve(expr.left);
+    this.resolve(expr.right);
+  }
+
+  visitCallExpr(expr: Call): void {
+    this.resolve(expr.callee);
+    for (const arg of expr.args) {
+      this.resolve(arg);
+    }
+  }
+
+  visitGroupingExpr(expr: Grouping): void {
+    this.resolve(expr.expression);
+  }
+
+  visitLiteralExpr(_expr: Literal): void {
+    return;
+  }
+
+  visitLogicalExpr(expr: Logical): void {
+    this.resolve(expr.left);
+    this.resolve(expr.right);
+  }
+
+  visitUnaryExpr(expr: Unary): void {
+    this.resolve(expr.right);
   }
 
   visitVariableExpr(expr: Variable): void {
