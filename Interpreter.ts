@@ -38,6 +38,7 @@ import {
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   readonly globals = new Environment();
   private environment = this.globals;
+  private locals: Map<Expr, number> = new Map();
 
   constructor() {
     // native 'clock' function
@@ -70,6 +71,10 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     stmt.accept(this);
   }
 
+  resolve(expr: Expr, depth: number): void {
+    this.locals.set(expr, depth);
+  }
+
   executeBlock(statements: Stmt[], environment: Environment): void {
     const previousEnv = this.environment;
     try {
@@ -80,6 +85,15 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
       }
     } finally {
       this.environment = previousEnv;
+    }
+  }
+
+  private lookupVariable(name: Token, expr: Expr): LoxObject {
+    const distance: number | undefined = this.locals.get(expr);
+    if (distance !== undefined) {
+      return this.environment.getAt(distance, name.lexeme);
+    } else {
+      return this.globals.get(name);
     }
   }
 
@@ -167,7 +181,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   }
 
   visitVariableExpr(expr: Variable): LoxObject {
-    return this.environment.get(expr.name);
+    return this.lookupVariable(expr.name, expr);
   }
 
   visitBinaryExpr(expr: Binary): LoxObject {

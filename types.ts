@@ -59,6 +59,7 @@ export class ReturnException extends Error {
 }
 
 export type LoxObject =
+  | LoxCallable
   | string
   | number
   | boolean
