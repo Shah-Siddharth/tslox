@@ -53,4 +53,8 @@ export class Environment {
 
     throw new RuntimeError(name, `Undefined variable ${name.lexeme}.`);
   }
+
+  assignAt(distance: number, name: Token, value: LoxObject) {
+    this.ancestor(distance)!.values.set(name.lexeme, value);
+  }
 }
