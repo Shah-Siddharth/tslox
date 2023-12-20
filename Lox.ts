@@ -23,6 +23,9 @@ export default class Lox {
     const resolver = new Resolver(this.interpreter);
     resolver.resolve(statements);
 
+    // Stop if there was a resolution error
+    if (this.hadError) return;
+
     Lox.interpreter.interpret(statements);
   }
 

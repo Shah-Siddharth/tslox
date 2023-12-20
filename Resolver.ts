@@ -26,6 +26,11 @@ import {
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 
+enum FunctionType {
+  NONE,
+  FUNCTION
+}
+
 type SyntaxVisitor<RE, RS> = ExprVisitor<RE> & StmtVisitor<RS>;
 
 export class Resolver implements SyntaxVisitor<void, void> {
@@ -33,6 +38,9 @@ export class Resolver implements SyntaxVisitor<void, void> {
 
   // stack to store scopes
   private scopes: Map<string, boolean>[] = [];
+
+  // tracking if code is in a function declaration
+  private currentFunction: FunctionType = FunctionType.NONE;
 
   constructor(interpreter: Interpreter) {
     this.interpreter = interpreter;
@@ -45,7 +53,10 @@ export class Resolver implements SyntaxVisitor<void, void> {
     else target.accept(this);
   }
 
-  private resolveFunction(func: StmtFunction): void {
+  private resolveFunction(func: StmtFunction, type: FunctionType): void {
+    const enclosingFunction = this.currentFunction;
+    this.currentFunction = type;
+
     this.beginScope();
     for (const param of func.params) {
       this.declare(param);
@@ -54,6 +65,8 @@ export class Resolver implements SyntaxVisitor<void, void> {
 
     this.resolve(func.body);
     this.endScope();
+
+    this.currentFunction = enclosingFunction;
   }
 
   beginScope(): void {
@@ -67,6 +80,9 @@ export class Resolver implements SyntaxVisitor<void, void> {
   private declare(name: Token): void {
     if (this.scopes.length === 0) return;
     const scope = this.scopes[this.scopes.length - 1];
+    if (scope.has(name.lexeme)) {
+      Lox.error(name, "Variable with this name already exists in this scope.");
+    }
     scope.set(name.lexeme, false);
   }
 
@@ -97,7 +113,7 @@ export class Resolver implements SyntaxVisitor<void, void> {
   visitFunctionStmt(stmt: StmtFunction): void {
     this.declare(stmt.name);
     this.define(stmt.name);
-    this.resolveFunction(stmt);
+    this.resolveFunction(stmt, FunctionType.FUNCTION);
   }
 
   visitIfStmt(stmt: If): void {
@@ -111,6 +127,9 @@ export class Resolver implements SyntaxVisitor<void, void> {
   }
 
   visitReturnStmt(stmt: Return): void {
+    if (this.currentFunction === FunctionType.NONE) {
+      Lox.error(stmt.keyword, "Can't return from top-level code.");
+    }
     if (stmt.value !== null) {
       this.resolve(stmt.value);
     }
