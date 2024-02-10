@@ -28,7 +28,7 @@ import Token from "./Token.ts";
 
 enum FunctionType {
   NONE,
-  FUNCTION
+  FUNCTION,
 }
 
 type SyntaxVisitor<RE, RS> = ExprVisitor<RE> & StmtVisitor<RS>;
