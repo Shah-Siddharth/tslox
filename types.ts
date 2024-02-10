@@ -49,6 +49,40 @@ export class LoxFunction extends LoxCallable {
   }
 }
 
+export class LoxClass extends LoxCallable {
+  readonly name: string;
+
+  constructor(name: string) {
+    super();
+    this.name = name;
+  }
+
+  public call(interpreter: Interpreter, args: LoxObject[]): LoxObject {
+    const instance = new LoxInstance(this);
+    return instance;
+  }
+
+  arity(): number {
+    return 0;
+  }
+
+  toString(): string {
+    return this.name;
+  }
+}
+
+export class LoxInstance {
+  private _class: LoxClass;
+
+  constructor(_class: LoxClass) {
+    this._class = _class;
+  }
+
+  toString(): string {
+    return this._class.name + " instance";
+  }
+}
+
 export class ReturnException extends Error {
   readonly value: LoxObject;
 
@@ -59,6 +93,7 @@ export class ReturnException extends Error {
 }
 
 export type LoxObject =
+  | LoxInstance
   | LoxCallable
   | string
   | number
