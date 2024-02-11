@@ -12,6 +12,7 @@ import {
 import Lox from "./Lox.ts";
 import {
   Block,
+  Class,
   Expression,
   Function,
   If,
@@ -47,10 +48,27 @@ export default class Parser {
   }
 
   private declaration(): Stmt {
+    if (this.match(TokenType.CLASS)) return this.classDeclaration();
     if (this.match(TokenType.FUN)) return this.function("function");
     if (this.match(TokenType.VAR)) return this.varDeclaration();
 
     return this.statement();
+  }
+
+  private classDeclaration(): Stmt {
+    const name: Token = this.consume(
+      TokenType.IDENTIFIER,
+      "Expect class name.",
+    );
+    this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+    const methods: Function[] = [];
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      methods.push(this.function("method"));
+    }
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+    return new Class(name, methods);
   }
 
   private varDeclaration(): Stmt {

@@ -14,6 +14,7 @@ import { Interpreter } from "./Interpreter.ts";
 import Lox from "./Lox.ts";
 import {
   Block,
+  Class,
   Expression,
   Function as StmtFunction,
   If,
@@ -104,6 +105,11 @@ export class Resolver implements SyntaxVisitor<void, void> {
     this.beginScope();
     this.resolve(stmt.statements);
     this.endScope();
+  }
+
+  visitClassStmt(stmt: Class): void {
+    this.declare(stmt.name);
+    this.define(stmt.name);
   }
 
   visitExpressionStmt(stmt: Expression): void {

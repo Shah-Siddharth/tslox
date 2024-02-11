@@ -24,11 +24,13 @@ import {
   Var,
   Visitor as StmtVisitor,
   While,
+  Class,
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
 import {
   LoxCallable,
+  LoxClass,
   LoxClockFunction,
   LoxFunction,
   LoxObject,
@@ -99,6 +101,12 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   visitBlockStmt(stmt: Block): void {
     this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
+  visitClassStmt(stmt: Class): void {
+    this.environment.define(stmt.name.lexeme, null);
+    const _class = new LoxClass(stmt.name.lexeme);
+    this.environment.assign(stmt.name, _class);
   }
 
   visitExpressionStmt(stmt: Expression): void {
