@@ -10,6 +10,7 @@ class GenerateAst {
       "Assign = name: Token, value: Expr",
       "Binary = left: Expr, operator: Token, right: Expr",
       "Call = callee: Expr, paren: Token, args: Expr[]",
+      "Get = object: Expr, name: Token",
       "Grouping = expression: Expr",
       "Literal = value: any",
       "Logical = left: Expr, operator: Token, right: Expr",
