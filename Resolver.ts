@@ -3,6 +3,7 @@ import {
   Binary,
   Call,
   Expr,
+  Get,
   Grouping,
   Literal,
   Logical,
@@ -170,6 +171,10 @@ export class Resolver implements SyntaxVisitor<void, void> {
     for (const arg of expr.args) {
       this.resolve(arg);
     }
+  }
+
+  visitGetExpr(expr: Get): void {
+    this.resolve(expr.object);
   }
 
   visitGroupingExpr(expr: Grouping): void {

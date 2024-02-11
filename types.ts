@@ -1,6 +1,8 @@
 import { Environment } from "./Environment.ts";
 import { Interpreter } from "./Interpreter.ts";
+import RuntimeError from "./RuntimeError.ts";
 import { Function } from "./Stmt.ts";
+import Token from "./Token.ts";
 
 export abstract class LoxCallable {
   abstract arity(): number;
@@ -73,6 +75,7 @@ export class LoxClass extends LoxCallable {
 
 export class LoxInstance {
   private _class: LoxClass;
+  private readonly fields = new Map<string, LoxObject>();
 
   constructor(_class: LoxClass) {
     this._class = _class;
@@ -80,6 +83,11 @@ export class LoxInstance {
 
   toString(): string {
     return this._class.name + " instance";
+  }
+
+  get(name: Token): LoxObject {
+    if (this.fields.has(name.lexeme)) return this.fields.get(name.lexeme)!;
+    throw new RuntimeError(name, `Undefined property ${name.lexeme}.`);
   }
 }
 

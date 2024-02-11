@@ -4,6 +4,7 @@ import {
   Binary,
   Call,
   Expr,
+  Get,
   Grouping,
   Literal,
   Logical,
@@ -15,6 +16,7 @@ import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
 import {
   Block,
+  Class,
   Expression,
   Function,
   If,
@@ -24,7 +26,6 @@ import {
   Var,
   Visitor as StmtVisitor,
   While,
-  Class,
 } from "./Stmt.ts";
 import Token from "./Token.ts";
 import TokenType from "./TokenType.ts";
@@ -33,6 +34,7 @@ import {
   LoxClass,
   LoxClockFunction,
   LoxFunction,
+  LoxInstance,
   LoxObject,
   ReturnException,
 } from "./types.ts";
@@ -263,6 +265,13 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
 
     return callee.call(this, args);
+  }
+
+  visitGetExpr(expr: Get): LoxObject {
+    const object: LoxObject = this.evaluate(expr.object);
+    if (object instanceof LoxInstance) return object.get(expr.name);
+
+    throw new RuntimeError(expr.name, "Only instances can have properties.");
   }
 
   visitFunctionStmt(stmt: Function): void {
