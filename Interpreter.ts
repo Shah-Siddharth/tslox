@@ -11,6 +11,7 @@ import {
   Unary,
   Variable,
   Visitor as ExprVisitor,
+  Set,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
@@ -175,6 +176,18 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
 
     return this.evaluate(expr.right);
+  }
+
+  visitSetExpr(expr: Set): LoxObject {
+    const object: LoxObject = this.evaluate(expr.object);
+
+    if (!(object instanceof LoxInstance)) {
+      throw new RuntimeError(expr.name, "Only instances can have fields.");
+    }
+
+    const value: LoxObject = this.evaluate(expr.value);
+    object.set(expr.name, value);
+    return value;
   }
 
   visitGroupingExpr(expr: Grouping): LoxObject {

@@ -10,6 +10,7 @@ import {
   Unary,
   Variable,
   Visitor as ExprVisitor,
+  Set,
 } from "./Expr.ts";
 import { Interpreter } from "./Interpreter.ts";
 import Lox from "./Lox.ts";
@@ -188,6 +189,11 @@ export class Resolver implements SyntaxVisitor<void, void> {
   visitLogicalExpr(expr: Logical): void {
     this.resolve(expr.left);
     this.resolve(expr.right);
+  }
+
+  visitSetExpr(expr: Set): void {
+    this.resolve(expr.value);
+    this.resolve(expr.object);
   }
 
   visitUnaryExpr(expr: Unary): void {
