@@ -8,10 +8,10 @@ import {
   Grouping,
   Literal,
   Logical,
+  Set,
   Unary,
   Variable,
   Visitor as ExprVisitor,
-  Set,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
@@ -108,7 +108,12 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   visitClassStmt(stmt: Class): void {
     this.environment.define(stmt.name.lexeme, null);
-    const _class = new LoxClass(stmt.name.lexeme);
+    const methods = new Map<string, LoxFunction>();
+    for (let method of stmt.methods) {
+      const func = new LoxFunction(method, this.environment);
+      methods.set(method.name.lexeme, func);
+    }
+    const _class = new LoxClass(stmt.name.lexeme, methods);
     this.environment.assign(stmt.name, _class);
   }
 

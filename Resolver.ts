@@ -7,10 +7,10 @@ import {
   Grouping,
   Literal,
   Logical,
+  Set,
   Unary,
   Variable,
   Visitor as ExprVisitor,
-  Set,
 } from "./Expr.ts";
 import { Interpreter } from "./Interpreter.ts";
 import Lox from "./Lox.ts";
@@ -32,6 +32,7 @@ import Token from "./Token.ts";
 enum FunctionType {
   NONE,
   FUNCTION,
+  METHOD,
 }
 
 type SyntaxVisitor<RE, RS> = ExprVisitor<RE> & StmtVisitor<RS>;
@@ -112,6 +113,11 @@ export class Resolver implements SyntaxVisitor<void, void> {
   visitClassStmt(stmt: Class): void {
     this.declare(stmt.name);
     this.define(stmt.name);
+
+    for (let method of stmt.methods) {
+      const declaration: FunctionType = FunctionType.METHOD;
+      this.resolveFunction(method, declaration);
+    }
   }
 
   visitExpressionStmt(stmt: Expression): void {

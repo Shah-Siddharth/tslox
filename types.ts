@@ -53,10 +53,20 @@ export class LoxFunction extends LoxCallable {
 
 export class LoxClass extends LoxCallable {
   readonly name: string;
+  private readonly methods: Map<string, LoxFunction>;
 
-  constructor(name: string) {
+  constructor(name: string, methods: Map<string, LoxFunction>) {
     super();
     this.name = name;
+    this.methods = methods;
+  }
+
+  findMethod(name: string): LoxFunction | null {
+    if (this.methods.has(name)) {
+      return this.methods.get(name)!;
+    }
+
+    return null;
   }
 
   public call(interpreter: Interpreter, args: LoxObject[]): LoxObject {
@@ -87,6 +97,10 @@ export class LoxInstance {
 
   get(name: Token): LoxObject {
     if (this.fields.has(name.lexeme)) return this.fields.get(name.lexeme)!;
+
+    const method = this._class.findMethod(name.lexeme);
+    if (method) return method;
+
     throw new RuntimeError(name, `Undefined property ${name.lexeme}.`);
   }
 
