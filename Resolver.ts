@@ -36,6 +36,11 @@ enum FunctionType {
   METHOD,
 }
 
+enum ClassType {
+  NONE,
+  CLASS,
+}
+
 type SyntaxVisitor<RE, RS> = ExprVisitor<RE> & StmtVisitor<RS>;
 
 export class Resolver implements SyntaxVisitor<void, void> {
@@ -46,6 +51,9 @@ export class Resolver implements SyntaxVisitor<void, void> {
 
   // tracking if code is in a function declaration
   private currentFunction: FunctionType = FunctionType.NONE;
+
+  // tracking if we are currently in a class
+  private currentClass: ClassType = ClassType.NONE;
 
   constructor(interpreter: Interpreter) {
     this.interpreter = interpreter;
@@ -112,6 +120,9 @@ export class Resolver implements SyntaxVisitor<void, void> {
   }
 
   visitClassStmt(stmt: Class): void {
+    const enclosingClass: ClassType = this.currentClass;
+    this.currentClass = ClassType.CLASS;
+
     this.declare(stmt.name);
     this.define(stmt.name);
 
@@ -124,6 +135,7 @@ export class Resolver implements SyntaxVisitor<void, void> {
     }
 
     this.endScope();
+    this.currentClass = enclosingClass;
   }
 
   visitExpressionStmt(stmt: Expression): void {
@@ -209,6 +221,9 @@ export class Resolver implements SyntaxVisitor<void, void> {
   }
 
   visitThisExpr(expr: This): void {
+    if (this.currentClass == ClassType.NONE) {
+      Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
+    }
     this.resolveLocal(expr, expr.keyword);
   }
 
