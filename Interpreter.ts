@@ -9,6 +9,7 @@ import {
   Literal,
   Logical,
   Set,
+  This,
   Unary,
   Variable,
   Visitor as ExprVisitor,
@@ -193,6 +194,10 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     const value: LoxObject = this.evaluate(expr.value);
     object.set(expr.name, value);
     return value;
+  }
+
+  visitThisExpr(expr: This): LoxObject {
+    return this.lookupVariable(expr.keyword, expr);
   }
 
   visitGroupingExpr(expr: Grouping): LoxObject {

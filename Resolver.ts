@@ -8,6 +8,7 @@ import {
   Literal,
   Logical,
   Set,
+  This,
   Unary,
   Variable,
   Visitor as ExprVisitor,
@@ -114,10 +115,15 @@ export class Resolver implements SyntaxVisitor<void, void> {
     this.declare(stmt.name);
     this.define(stmt.name);
 
+    this.beginScope();
+    this.scopes[this.scopes.length - 1].set("this", true);
+
     for (let method of stmt.methods) {
       const declaration: FunctionType = FunctionType.METHOD;
       this.resolveFunction(method, declaration);
     }
+
+    this.endScope();
   }
 
   visitExpressionStmt(stmt: Expression): void {
@@ -200,6 +206,10 @@ export class Resolver implements SyntaxVisitor<void, void> {
   visitSetExpr(expr: Set): void {
     this.resolve(expr.value);
     this.resolve(expr.object);
+  }
+
+  visitThisExpr(expr: This): void {
+    this.resolveLocal(expr, expr.keyword);
   }
 
   visitUnaryExpr(expr: Unary): void {

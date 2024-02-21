@@ -30,6 +30,12 @@ export class LoxFunction extends LoxCallable {
     this.closure = closure;
   }
 
+  bind(instance: LoxInstance): LoxFunction {
+    const environment = new Environment(this.closure);
+    environment.define("this", instance);
+    return new LoxFunction(this.declaration, environment);
+  }
+
   arity(): number {
     return this.declaration.params.length;
   }
@@ -99,7 +105,7 @@ export class LoxInstance {
     if (this.fields.has(name.lexeme)) return this.fields.get(name.lexeme)!;
 
     const method = this._class.findMethod(name.lexeme);
-    if (method) return method;
+    if (method) return method.bind(this);
 
     throw new RuntimeError(name, `Undefined property ${name.lexeme}.`);
   }

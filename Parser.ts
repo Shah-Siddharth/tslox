@@ -8,6 +8,7 @@ import {
   Literal,
   Logical,
   Set as SetExpr,
+  This as ThisExpr,
   Unary,
   Variable,
 } from "./Expr.ts";
@@ -377,6 +378,10 @@ export default class Parser {
 
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
+    }
+
+    if (this.match(TokenType.THIS)) {
+      return new ThisExpr(this.previous());
     }
 
     if (this.match(TokenType.IDENTIFIER)) {
