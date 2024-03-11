@@ -23,17 +23,19 @@ export class LoxClockFunction extends LoxCallable {
 export class LoxFunction extends LoxCallable {
   private readonly declaration: Function;
   private readonly closure: Environment;
+  private readonly isInitializer: boolean;
 
-  constructor(declaration: Function, closure: Environment) {
+  constructor(declaration: Function, closure: Environment, isInitializer: boolean) {
     super();
     this.declaration = declaration;
     this.closure = closure;
+    this.isInitializer = isInitializer;
   }
 
   bind(instance: LoxInstance): LoxFunction {
     const environment = new Environment(this.closure);
     environment.define("this", instance);
-    return new LoxFunction(this.declaration, environment);
+    return new LoxFunction(this.declaration, environment, this.isInitializer);
   }
 
   arity(): number {
@@ -50,9 +52,11 @@ export class LoxFunction extends LoxCallable {
       interpreter.executeBlock(this.declaration.body, environment);
     } catch (e) {
       if (e instanceof ReturnException) {
+        if (this.isInitializer) return this.closure.getAt(0, "this");
         return e.value;
       }
     }
+    if (this.isInitializer) return this.closure.getAt(0, "this");
     return null;
   }
 }
@@ -77,11 +81,17 @@ export class LoxClass extends LoxCallable {
 
   public call(interpreter: Interpreter, args: LoxObject[]): LoxObject {
     const instance = new LoxInstance(this);
+    const initializer = this.findMethod("init");
+    if (initializer) {
+      initializer.bind(instance).call(interpreter, args);
+    }
     return instance;
   }
 
   arity(): number {
-    return 0;
+    const initializer = this.findMethod("init");
+    if (initializer == null) return 0;
+    return initializer.arity();
   }
 
   toString(): string {

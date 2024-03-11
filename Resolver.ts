@@ -33,6 +33,7 @@ import Token from "./Token.ts";
 enum FunctionType {
   NONE,
   FUNCTION,
+  INITIALIZER,
   METHOD,
 }
 
@@ -130,7 +131,10 @@ export class Resolver implements SyntaxVisitor<void, void> {
     this.scopes[this.scopes.length - 1].set("this", true);
 
     for (let method of stmt.methods) {
-      const declaration: FunctionType = FunctionType.METHOD;
+      let declaration: FunctionType = FunctionType.METHOD;
+      if (method.name.lexeme === "init") {
+        declaration = FunctionType.INITIALIZER;
+      }
       this.resolveFunction(method, declaration);
     }
 
@@ -163,6 +167,9 @@ export class Resolver implements SyntaxVisitor<void, void> {
       Lox.error(stmt.keyword, "Can't return from top-level code.");
     }
     if (stmt.value !== null) {
+      if (this.currentFunction == FunctionType.INITIALIZER) {
+        Lox.error(stmt.keyword, "Can't return a value from an initializer.");
+      }
       this.resolve(stmt.value);
     }
   }
