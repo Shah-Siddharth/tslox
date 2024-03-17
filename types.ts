@@ -25,7 +25,11 @@ export class LoxFunction extends LoxCallable {
   private readonly closure: Environment;
   private readonly isInitializer: boolean;
 
-  constructor(declaration: Function, closure: Environment, isInitializer: boolean) {
+  constructor(
+    declaration: Function,
+    closure: Environment,
+    isInitializer: boolean,
+  ) {
     super();
     this.declaration = declaration;
     this.closure = closure;
@@ -63,17 +67,27 @@ export class LoxFunction extends LoxCallable {
 
 export class LoxClass extends LoxCallable {
   readonly name: string;
+  readonly superclass: LoxClass | null;
   private readonly methods: Map<string, LoxFunction>;
 
-  constructor(name: string, methods: Map<string, LoxFunction>) {
+  constructor(
+    name: string,
+    superclass: LoxClass | null,
+    methods: Map<string, LoxFunction>,
+  ) {
     super();
     this.name = name;
+    this.superclass = superclass;
     this.methods = methods;
   }
 
   findMethod(name: string): LoxFunction | null {
     if (this.methods.has(name)) {
       return this.methods.get(name)!;
+    }
+
+    if (this.superclass != null) {
+      return this.superclass.findMethod(name);
     }
 
     return null;

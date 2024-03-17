@@ -127,6 +127,16 @@ export class Resolver implements SyntaxVisitor<void, void> {
     this.declare(stmt.name);
     this.define(stmt.name);
 
+    if (
+      stmt.superclass != null && stmt.name.lexeme == stmt.superclass.name.lexeme
+    ) {
+      Lox.error(stmt.superclass.name, "A class can't inherit from itself.");
+    }
+
+    if (stmt.superclass != null) {
+      this.resolve(stmt.superclass);
+    }
+
     this.beginScope();
     this.scopes[this.scopes.length - 1].set("this", true);
 
