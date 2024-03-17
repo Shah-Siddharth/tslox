@@ -1,4 +1,4 @@
-import { Expr } from "./Expr.ts";
+import { Expr, Variable } from "./Expr.ts";
 import Token from "./Token.ts";
 
 export abstract class Stmt {
@@ -30,10 +30,12 @@ export class Block extends Stmt {
 
 export class Class extends Stmt {
   name: Token;
+  superclass: Variable;
   methods: Function[];
-  constructor(name: Token, methods: Function[]) {
+  constructor(name: Token, superclass: Variable, methods: Function[]) {
     super();
     this.name = name;
+    this.superclass = superclass;
     this.methods = methods;
   }
   accept<R>(visitor: Visitor<R>) {
