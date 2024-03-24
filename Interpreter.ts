@@ -9,11 +9,11 @@ import {
   Literal,
   Logical,
   Set,
+  Super,
   This,
   Unary,
   Variable,
   Visitor as ExprVisitor,
-  Super,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
@@ -226,13 +226,16 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   visitSuperExpr(expr: Super): LoxObject {
     const distance = this.locals.get(expr)!;
     const superclass = this.environment.getAt(distance, "super") as LoxClass;
-    const object = this.environment.getAt(distance-1, "this") as LoxInstance;
+    const object = this.environment.getAt(distance - 1, "this") as LoxInstance;
     const method = superclass.findMethod(expr.method.lexeme);
 
     if (method == null) {
-      throw new RuntimeError(expr.method, `Undefined property ${expr.method.lexeme}.`);
+      throw new RuntimeError(
+        expr.method,
+        `Undefined property ${expr.method.lexeme}.`,
+      );
     }
-    
+
     return method.bind(object);
   }
 

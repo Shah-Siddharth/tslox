@@ -8,11 +8,11 @@ import {
   Literal,
   Logical,
   Set,
+  Super,
   This,
   Unary,
   Variable,
   Visitor as ExprVisitor,
-  Super,
 } from "./Expr.ts";
 import { Interpreter } from "./Interpreter.ts";
 import Lox from "./Lox.ts";
@@ -41,6 +41,7 @@ enum FunctionType {
 enum ClassType {
   NONE,
   CLASS,
+  SUBCLASS,
 }
 
 type SyntaxVisitor<RE, RS> = ExprVisitor<RE> & StmtVisitor<RS>;
@@ -135,6 +136,7 @@ export class Resolver implements SyntaxVisitor<void, void> {
     }
 
     if (stmt.superclass != null) {
+      this.currentClass = ClassType.SUBCLASS;
       this.resolve(stmt.superclass);
     }
 
@@ -245,6 +247,15 @@ export class Resolver implements SyntaxVisitor<void, void> {
   }
 
   visitSuperExpr(expr: Super): void {
+    if (this.currentClass == ClassType.NONE) {
+      Lox.error(expr.keyword, "Can't use 'super' outside of a class.");
+    } else if (this.currentClass != ClassType.SUBCLASS) {
+      Lox.error(
+        expr.keyword,
+        "Can't use 'super' in a class with no superclass",
+      );
+    }
+
     this.resolveLocal(expr, expr.keyword);
   }
 
