@@ -30,9 +30,9 @@ export class Block extends Stmt {
 
 export class Class extends Stmt {
   name: Token;
-  superclass: Variable;
+  superclass: Variable | null;
   methods: Function[];
-  constructor(name: Token, superclass: Variable, methods: Function[]) {
+  constructor(name: Token, superclass: Variable | null, methods: Function[]) {
     super();
     this.name = name;
     this.superclass = superclass;

@@ -23,7 +23,7 @@ class GenerateAst {
 
     this.defineAst(outputDir, "Stmt", [
       "Block = statements: Stmt[]",
-      "Class = name: Token, superclass: Variable, methods: Function[]",
+      "Class = name: Token, superclass: Variable | null, methods: Function[]",
       "Expression = expression: Expr",
       "Function = name: Token, params: Token[], body: Stmt[]",
       "If = condition: Expr, thenBranch: Stmt, elseBranch: Stmt | null",

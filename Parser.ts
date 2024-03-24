@@ -64,6 +64,13 @@ export default class Parser {
       TokenType.IDENTIFIER,
       "Expect class name.",
     );
+
+    let superclass: Variable | null = null;
+    if (this.match(TokenType.LESS)) {
+      this.consume(TokenType.IDENTIFIER, "Expect superclass name.");
+      superclass = new Variable(this.previous());
+    }
+
     this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 
     const methods: Function[] = [];
