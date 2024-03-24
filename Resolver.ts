@@ -12,6 +12,7 @@ import {
   Unary,
   Variable,
   Visitor as ExprVisitor,
+  Super,
 } from "./Expr.ts";
 import { Interpreter } from "./Interpreter.ts";
 import Lox from "./Lox.ts";
@@ -137,6 +138,11 @@ export class Resolver implements SyntaxVisitor<void, void> {
       this.resolve(stmt.superclass);
     }
 
+    if (stmt.superclass != null) {
+      this.beginScope();
+      this.scopes[this.scopes.length - 1].set("super", true);
+    }
+
     this.beginScope();
     this.scopes[this.scopes.length - 1].set("this", true);
 
@@ -149,6 +155,7 @@ export class Resolver implements SyntaxVisitor<void, void> {
     }
 
     this.endScope();
+    if (stmt.superclass != null) this.endScope();
     this.currentClass = enclosingClass;
   }
 
@@ -235,6 +242,10 @@ export class Resolver implements SyntaxVisitor<void, void> {
   visitSetExpr(expr: Set): void {
     this.resolve(expr.value);
     this.resolve(expr.object);
+  }
+
+  visitSuperExpr(expr: Super): void {
+    this.resolveLocal(expr, expr.keyword);
   }
 
   visitThisExpr(expr: This): void {

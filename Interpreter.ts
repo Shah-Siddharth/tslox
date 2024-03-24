@@ -13,6 +13,7 @@ import {
   Unary,
   Variable,
   Visitor as ExprVisitor,
+  Super,
 } from "./Expr.ts";
 import Lox from "./Lox.ts";
 import RuntimeError from "./RuntimeError.ts";
@@ -120,6 +121,12 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
 
     this.environment.define(stmt.name.lexeme, null);
+
+    if (stmt.superclass != null) {
+      const environment = new Environment(this.environment);
+      environment.define("super", superclass);
+    }
+
     const methods = new Map<string, LoxFunction>();
     for (let method of stmt.methods) {
       const func = new LoxFunction(
@@ -130,6 +137,11 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
       methods.set(method.name.lexeme, func);
     }
     const _class = new LoxClass(stmt.name.lexeme, superclass, methods);
+
+    if (superclass != null && this.environment.enclosing != null) {
+      this.environment = this.environment.enclosing;
+    }
+
     this.environment.assign(stmt.name, _class);
   }
 
@@ -209,6 +221,19 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     const value: LoxObject = this.evaluate(expr.value);
     object.set(expr.name, value);
     return value;
+  }
+
+  visitSuperExpr(expr: Super): LoxObject {
+    const distance = this.locals.get(expr)!;
+    const superclass = this.environment.getAt(distance, "super") as LoxClass;
+    const object = this.environment.getAt(distance-1, "this") as LoxInstance;
+    const method = superclass.findMethod(expr.method.lexeme);
+
+    if (method == null) {
+      throw new RuntimeError(expr.method, `Undefined property ${expr.method.lexeme}.`);
+    }
+    
+    return method.bind(object);
   }
 
   visitThisExpr(expr: This): LoxObject {

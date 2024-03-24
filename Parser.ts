@@ -8,6 +8,7 @@ import {
   Literal,
   Logical,
   Set as SetExpr,
+  Super,
   This as ThisExpr,
   Unary,
   Variable,
@@ -71,7 +72,7 @@ export default class Parser {
     }
 
     this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
-    return new Class(name, methods);
+    return new Class(name, superclass, methods);
   }
 
   private varDeclaration(): Stmt {
@@ -378,6 +379,13 @@ export default class Parser {
 
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
+    }
+
+    if (this.match(TokenType.SUPER)) {
+      const keyword: Token = this.previous();
+      this.consume(TokenType.DOT, "Expect '.' after 'super'.");
+      const method: Token = this.consume(TokenType.IDENTIFIER, "Expect superclass method name.");
+      return new Super(keyword, method);
     }
 
     if (this.match(TokenType.THIS)) {
